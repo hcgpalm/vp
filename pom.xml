@@ -56,6 +56,7 @@
 		<module>vp-teststub</module>
 		<module>vp-hsa-cache</module>
 		<module>vp-auto-deployer</module>
+		<module>vp-virtualservice-template</module>
 	</modules>
 
 	<dependencies>

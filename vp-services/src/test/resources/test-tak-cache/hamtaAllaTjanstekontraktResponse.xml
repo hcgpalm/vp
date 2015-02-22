@@ -1,0 +1,50 @@
+<!--
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+-->
+<JaxbLoadRoot2>
+
+      <hamtaAllaTjanstekontraktResponse xmlns="urn:skl:tp:vagvalsinfo:v2">
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:itinfra:tp:PingResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Ping kontrakt för att verifiera koppling</beskrivning>
+         </tjanstekontraktInfo>
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:crm:carelisting:CreateListingResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Nationell Listning</beskrivning>
+         </tjanstekontraktInfo>
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:crm:carelisting:GetAvailableFacilitiesResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Nationell Listning</beskrivning>
+         </tjanstekontraktInfo>
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:crm:carelisting:GetListingResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Nationell Listning</beskrivning>
+         </tjanstekontraktInfo>
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:crm:carelisting:GetListingTypesResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Nationell Listning</beskrivning>
+         </tjanstekontraktInfo>
+         <tjanstekontraktInfo>
+            <namnrymd>urn:riv:crm:carelisting:GetPersonQueueStatusResponder:1</namnrymd>
+            <majorVersion>1</majorVersion>
+            <minorVersion>0</minorVersion>
+            <beskrivning>Nationell Listning</beskrivning>
+         </tjanstekontraktInfo>
+      </hamtaAllaTjanstekontraktResponse>
+
+</JaxbLoadRoot2>
+<!--
+   </soap:Body>
+</soap:Envelope>
+-->

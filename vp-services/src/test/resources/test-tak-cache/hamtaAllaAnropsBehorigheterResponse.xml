@@ -1,0 +1,54 @@
+<!--
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+-->
+<JaxbLoadRoot1>
+
+      <hamtaAllaAnropsBehorigheterResponse xmlns="urn:skl:tp:vagvalsinfo:v2">
+         <anropsBehorighetsInfo>
+            <anropsBehorighetsInfoId>13</anropsBehorighetsInfoId>
+            <receiverId>Ping</receiverId>
+            <senderId>SE5565594230-B9P</senderId>
+            <tjansteKontrakt>urn:riv:itinfra:tp:PingResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-21T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+         </anropsBehorighetsInfo>
+         <anropsBehorighetsInfo>
+            <anropsBehorighetsInfoId>14</anropsBehorighetsInfoId>
+            <receiverId>01</receiverId>
+            <senderId>SE5565594230-B9P</senderId>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetAvailableFacilitiesResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+         </anropsBehorighetsInfo>
+         <anropsBehorighetsInfo>
+            <anropsBehorighetsInfoId>15</anropsBehorighetsInfoId>
+            <receiverId>01</receiverId>
+            <senderId>SE5565594230-B9P</senderId>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetListingResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+         </anropsBehorighetsInfo>
+         <anropsBehorighetsInfo>
+            <anropsBehorighetsInfoId>16</anropsBehorighetsInfoId>
+            <receiverId>01</receiverId>
+            <senderId>SE5565594230-B9P</senderId>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetListingTypesResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+         </anropsBehorighetsInfo>
+         <anropsBehorighetsInfo>
+            <anropsBehorighetsInfoId>17</anropsBehorighetsInfoId>
+            <receiverId>01</receiverId>
+            <senderId>SE5565594230-B9P</senderId>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetPersonQueueStatusResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+         </anropsBehorighetsInfo>
+      </hamtaAllaAnropsBehorigheterResponse>
+
+</JaxbLoadRoot1>
+<!--
+   </soap:Body>
+</soap:Envelope>
+-->

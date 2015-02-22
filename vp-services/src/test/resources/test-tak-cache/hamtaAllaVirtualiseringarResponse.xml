@@ -1,0 +1,68 @@
+<!--
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+-->
+<JaxbLoadRoot3>
+
+      <hamtaAllaVirtualiseringarResponse xmlns="urn:skl:tp:vagvalsinfo:v2">
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>1</virtualiseringsInfoId>
+            <receiverId>Ping</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:itinfra:tp:PingResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-07T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>http://localhost:10000/test/Ping_Service</adress>
+         </virtualiseringsInfo>
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>2</virtualiseringsInfoId>
+            <receiverId>01</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetListingTypesResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>https://nlt.sll.sjunet.org:11978/serviceimplGetListingTypes.svc</adress>
+         </virtualiseringsInfo>
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>3</virtualiseringsInfoId>
+            <receiverId>01</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:crm:carelisting:CreateListingResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>https://nlt.sll.sjunet.org:11978/serviceimplCreateListning.svc</adress>
+         </virtualiseringsInfo>
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>4</virtualiseringsInfoId>
+            <receiverId>01</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetAvailableFacilitiesResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>https://nlt.sll.sjunet.org:11978/serviceimplGetAvailableFacilitiesInteraction.svc</adress>
+         </virtualiseringsInfo>
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>5</virtualiseringsInfoId>
+            <receiverId>01</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetPersonQueueStatusResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>https://nlt.sll.sjunet.org:11978/serviceimplGetPersonQueueStatus.svc</adress>
+         </virtualiseringsInfo>
+         <virtualiseringsInfo>
+            <virtualiseringsInfoId>6</virtualiseringsInfoId>
+            <receiverId>01</receiverId>
+            <rivProfil>RIVTABP20</rivProfil>
+            <tjansteKontrakt>urn:riv:crm:carelisting:GetListingResponder:1</tjansteKontrakt>
+            <fromTidpunkt>2010-05-23T00:00:00.000</fromTidpunkt>
+            <tomTidpunkt>2113-11-20T00:00:00.000</tomTidpunkt>
+            <adress>http://ine-pit-intern-vip-anp:11001/tjanstebryggan/carelisting/hval24/GetListing/1/rivtabp20</adress>
+         </virtualiseringsInfo>
+      </hamtaAllaVirtualiseringarResponse>
+
+</JaxbLoadRoot3>
+<!--
+   </soap:Body>
+</soap:Envelope>
+-->

@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import se.skl.tp.vp.exceptions.VpSemanticException;
 import se.skl.tp.vp.util.HttpHeaders;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.WhiteListHandler;
 import se.skl.tp.vp.util.helper.cert.CertificateExtractor;
@@ -122,7 +124,8 @@ public class CheckSenderIdTransformer extends AbstractMessageTransformer{
 			 */
 			try {
 				log.debug("No, look into the senders certificate instead");
-				CertificateExtractorFactory certificateExtractorFactory = new CertificateExtractorFactory(message, pattern, whiteListHandler);
+				VPMessage m = VPMessageFactory.createInstance(message);
+				CertificateExtractorFactory certificateExtractorFactory = new CertificateExtractorFactory(m, pattern, whiteListHandler);
 				CertificateExtractor certHelper = certificateExtractorFactory.createCertificateExtractor();
 				senderId = certHelper.extractSenderIdFromCertificate();
 				log.debug("Sender id extracted from certificate {}", senderId);
@@ -147,7 +150,7 @@ public class CheckSenderIdTransformer extends AbstractMessageTransformer{
 	private String extractSenderIpAdress(MuleMessage message) {
 		String senderIpAdress = (String)message.getInboundProperty(senderIpAdressHttpHeader);
 		if(senderIpAdress == null){
-			senderIpAdress = VPUtil.extractIpAddress(message);
+			senderIpAdress = VPUtil.extractIpAddress(VPMessageFactory.createInstance(message));
 		}
 		return senderIpAdress;
 	}

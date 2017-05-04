@@ -33,6 +33,8 @@ import org.mule.api.MuleMessage;
 import org.mule.module.xml.stax.ReversibleXMLStreamReader;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 import se.skl.tp.vp.util.helper.PayloadHelper.PayloadInfo;
 
 public class PayloadHelperTest extends AbstractMuleContextTestCase {
@@ -51,8 +53,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId.equalsIgnoreCase("RIVTA20REQUEST"));		
@@ -72,8 +75,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId.equalsIgnoreCase("RIVTA21REQUEST"));
 	}
@@ -92,8 +96,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId == null);	
 	}
@@ -112,8 +117,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId == null);	
 	}
@@ -132,8 +138,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId.equalsIgnoreCase(" RIVTA20REQUEST"));
 	}
@@ -152,8 +159,9 @@ public class PayloadHelperTest extends AbstractMuleContextTestCase {
 		ReversibleXMLStreamReader xmlStreamReader = new ReversibleXMLStreamReader(xstream);
 		
 		MuleMessage testMsg = new DefaultMuleMessage(xmlStreamReader, muleContext);
+		final VPMessage message = VPMessageFactory.createInstance(testMsg);
 
-		PayloadHelper helper = new PayloadHelper(testMsg);
+		PayloadHelper helper = new PayloadHelper(message);
 		PayloadInfo result = helper.extractInfoFromPayload();
 		assertTrue(result.receiverId.equalsIgnoreCase("RIVTA20REQUEST "));
 	}

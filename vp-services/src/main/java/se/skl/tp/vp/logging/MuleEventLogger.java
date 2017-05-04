@@ -18,17 +18,14 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package se.skl.tp.vp.util;
+package se.skl.tp.vp.logging;
 
 import static org.soitoolkit.commons.mule.core.PropertyNames.SOITOOLKIT_BUSINESS_CONTEXT_ID;
 import static org.soitoolkit.commons.mule.core.PropertyNames.SOITOOLKIT_CONTRACT_ID;
 import static org.soitoolkit.commons.mule.core.PropertyNames.SOITOOLKIT_CORRELATION_ID;
 import static org.soitoolkit.commons.mule.core.PropertyNames.SOITOOLKIT_INTEGRATION_SCENARIO;
 
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,7 +46,6 @@ import org.mule.api.transport.PropertyScope;
 import org.mule.transport.jms.JmsConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 import org.soitoolkit.commons.logentry.schema.v1.LogEntryType;
 import org.soitoolkit.commons.logentry.schema.v1.LogEntryType.ExtraInfo;
 import org.soitoolkit.commons.logentry.schema.v1.LogEvent;
@@ -64,6 +60,8 @@ import org.soitoolkit.commons.mule.jaxb.JaxbUtil;
 import org.soitoolkit.commons.mule.util.MuleUtil;
 import org.soitoolkit.commons.mule.util.XmlUtil;
 
+import se.skl.tp.vp.util.PayloadToStringTransformer;
+
 
 
 /**
@@ -72,35 +70,20 @@ import org.soitoolkit.commons.mule.util.XmlUtil;
  * @author Magnus Larsson
  *
  */
-public class EventLogger {
+@SuppressWarnings("deprecation")
+public class MuleEventLogger extends EventLoggerBase implements EventLogger<MuleMessage> {
+
+	private static final String UNKNOWN_MULE_CONFIGURATION = "UNKNOWN.MULE_CONFIGURATION";
+
+	private static final String UNKNOWN_MULE_CONTEXT = "UNKNOWN.MULE_CONTEXT";
 
 	// Logger for normal logging of code execution	
 	private static final Logger log = LoggerFactory.getLogger(EventLogger.class);
 
-	// EventLogger specific logger of message execution in VP
-	private static final Logger messageLogger = LoggerFactory.getLogger("org.soitoolkit.commons.mule.messageLogger");
-	
 	// Creating JaxbUtil objects (i.e. JaxbContext objects)  are costly, so we only keep one instance.
 	// According to https://jaxb.dev.java.net/faq/index.html#threadSafety this should be fine since they are thread safe!
 	private static final JaxbUtil JAXB_UTIL = new JaxbUtil(LogEvent.class);
 	
-	private static final String MSG_ID = "soi-toolkit.log";
-	private static final String LOG_EVENT_INFO = "logEvent-info";
-	private static final String LOG_EVENT_ERROR = "logEvent-error";
-	private static final String LOG_EVENT_DEBUG = "logEvent-debug";
-	private static final String LOG_STRING = MSG_ID + 
-		"\n** {}.start ***********************************************************" +
-		"\nIntegrationScenarioId={}\nContractId={}\nLogMessage={}\nServiceImpl={}\nHost={} ({})\nComponentId={}\nEndpoint={}\nMessageId={}\nBusinessCorrelationId={}\nBusinessContextId={}\nExtraInfo={}\nPayload={}" + 
-		"{}" + // Placeholder for stack trace info if an error is logged
-		"\n** {}.end *************************************************************";
-
-	
-
-	private static InetAddress HOST = null;
-	private static String HOST_NAME = "UNKNOWN";
-	private static String HOST_IP = "UNKNOWN";
-	private static String PROCESS_ID = "UNKNOWN";
-
 	private String serverId = null; // Can't read this one at class initialization because it is not set at that time. Can also be different for different loggers in the same JVM (e.g. multiple wars in one servlet container with shared classes?))
 	private MuleContext muleContext;
 	
@@ -113,22 +96,11 @@ public class EventLogger {
 
 	private static boolean s_enableLogToJms = true;
 
-	static {
-		try {
-			// Let's give it a try, fail silently...
-			HOST       = InetAddress.getLocalHost();
-			HOST_NAME  = HOST.getCanonicalHostName();
-			HOST_IP    = HOST.getHostAddress();
-			PROCESS_ID = ManagementFactory.getRuntimeMXBean().getName();
-		} catch (Throwable ex) {
-		}
-	}
 
-	/**
-	 * Enable logging to JMS, it true by default
-	 * 
-	 * @param logEnableToJms
+	/* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#setEnableLogToJms(boolean)
 	 */
+	@Override
 	public void setEnableLogToJms(boolean enableLogToJms) {	
 		s_enableLogToJms = enableLogToJms;
 		
@@ -139,45 +111,46 @@ public class EventLogger {
 		}
 	}
 	
-	public void setMuleContext(MuleContext muleContext) {
+	@Override
+	public <F> void setContext(F muleContext) {
 		log.debug("setMuleContext { muleContext: {} }", muleContext);
-		this.muleContext = muleContext;
+		this.muleContext = (MuleContext)muleContext;
 	}
 	
-	
-	/**
-	 * Setter for the jaxbToXml property
-	 * 
-	 * @param jaxbToXml
+	/* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#setJaxbToXml(org.soitoolkit.commons.mule.jaxb.JaxbObjectToXmlTransformer)
 	 */
+	@Override
 	public void setJaxbToXml(JaxbObjectToXmlTransformer jaxbToXml) {
 		this.payloadToStringTransformer  = new PayloadToStringTransformer(jaxbToXml);
 	}
 	
-	 /**
-     * Specify to which queue error messages should be sent.
-     * 
-     * @param logErrorQueueName
-     */
-    public void setLogErrorQueueName(String logErrorQueueName) {
+	 /* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#setLogErrorQueueName(java.lang.String)
+	 */
+    @Override
+	public void setLogErrorQueueName(String logErrorQueueName) {
         this.logErrorQueueName = logErrorQueueName;
     }
 
-    /**
-     * Specify to which queue info messages should be sent.
-     * 
-     * @param logInfoQueueName
-     */
-    public void setLogInfoQueueName(String logInfoQueueName) {
+    /* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#setLogInfoQueueName(java.lang.String)
+	 */
+    @Override
+	public void setLogInfoQueueName(String logInfoQueueName) {
         this.logInfoQueueName = logInfoQueueName;
     }
 
 	//
+	/* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#logInfoEvent(org.mule.api.MuleMessage, java.lang.String, java.util.Map, java.util.Map)
+	 */
+	@Override
 	public void logInfoEvent (
 		MuleMessage message,
 		String      logMessage,
 		Map<String, String> businessContextId,
-		Map<String, String> extraInfo) {
+		SessionInfo extraInfo) {
 		
 		//Only log payload when DEBUG is defined in log4j.xml
 		if(messageLogger.isDebugEnabled()){
@@ -192,46 +165,37 @@ public class EventLogger {
 	}
 
 	//
+	/* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#logErrorEvent(java.lang.Throwable, org.mule.api.MuleMessage, java.util.Map, java.util.Map)
+	 */
+	@Override
 	public void logErrorEvent (
 		Throwable   error,
 		MuleMessage message,
 		Map<String, String> businessContextId,
-		Map<String, String> extraInfo) {
+		SessionInfo extraInfo) {
 
 		LogEvent logEvent = createLogEntry(LogLevelType.ERROR, message, error.toString(), businessContextId, extraInfo, message.getPayload(), error);
 		dispatchErrorEvent(logEvent);
 		logErrorEvent(logEvent);
 	}
 
-	//
+	/**
+	 * Use this when there is no message or payload to extract
+	 */
+	@Override
 	public void logErrorEvent (
 		Throwable   error,
-		Object      payload,
+		String      payload,
 		Map<String, String> businessContextId,
-		Map<String, String> extraInfo) {
+		SessionInfo extraInfo) {
 
 		LogEvent logEvent = createLogEntry(LogLevelType.ERROR, null, error.toString(), businessContextId, extraInfo, payload, error);
 		dispatchErrorEvent(logEvent);
 		logErrorEvent(logEvent);
 	}
 
-	//----------------
-	
-	private void logDebugEvent(LogEvent logEvent) {
-		String logMsg = formatLogMessage(LOG_EVENT_DEBUG, logEvent);
-		messageLogger.debug(logMsg);	
-	}
-	
-	private void logInfoEvent(LogEvent logEvent) {
-		String logMsg = formatLogMessage(LOG_EVENT_INFO, logEvent);
-		messageLogger.info(logMsg);
-	}
-	
-	private void logErrorEvent(LogEvent logEvent) {
-		String logMsg = formatLogMessage(LOG_EVENT_ERROR, logEvent);
-		messageLogger.error(logMsg);
-	}
-	
+
 	private void dispatchInfoEvent(LogEvent logEvent) {
 		if (s_enableLogToJms) {
 			String msg = JAXB_UTIL.marshal(logEvent);
@@ -270,14 +234,16 @@ public class EventLogger {
 	}
 
 	private Session getSession() throws JMSException {
-//		JmsConnector jmsConn = (JmsConnector)MuleServer.getMuleContext().getRegistry().lookupConnector("soitoolkit-jms-connector");
 		JmsConnector jmsConn = (JmsConnector)MuleUtil.getSpringBean(this.muleContext, "soitoolkit-jms-connector");
 		Connection c = jmsConn.getConnection();
 		Session s = c.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		return s;
 	}
 
-	public void sendOneTextMessage(Session session, String queueName, String message) {
+	/* (non-Javadoc)
+	 * @see se.skl.tp.vp.logging.EventLogger#sendOneTextMessage(javax.jms.Session, java.lang.String, java.lang.String)
+	 */
+	private void sendOneTextMessage(Session session, String queueName, String message) {
 
         MessageProducer publisher = null;
 
@@ -295,69 +261,15 @@ public class EventLogger {
 	    }
 	}
 
-	private String formatLogMessage(String logEventName, LogEvent logEvent) {
-		LogMessageType      messageInfo  = logEvent.getLogEntry().getMessageInfo();
-		LogMetadataInfoType metadataInfo = logEvent.getLogEntry().getMetadataInfo();
-		LogRuntimeInfoType  runtimeInfo  = logEvent.getLogEntry().getRuntimeInfo();
-
-		String integrationScenarioId   = metadataInfo.getIntegrationScenarioId();
-		String contractId              = metadataInfo.getContractId();
-		String logMessage              = messageInfo.getMessage();
-		String serviceImplementation   = metadataInfo.getServiceImplementation();
-		String componentId             = runtimeInfo.getComponentId();
-		String endpoint                = metadataInfo.getEndpoint();
-		String messageId               = runtimeInfo.getMessageId();
-		String businessCorrelationId   = runtimeInfo.getBusinessCorrelationId();
-		String payload                 = logEvent.getLogEntry().getPayload();
-		String businessContextIdString = businessContextIdToString(runtimeInfo.getBusinessContextId());
-		String extraInfoString         = extraInfoToString(logEvent.getLogEntry().getExtraInfo());
-		
-		StringBuffer stackTrace = new StringBuffer();
-		LogMessageExceptionType lmeException = logEvent.getLogEntry().getMessageInfo().getException();
-		if (lmeException != null) {
-			String ex = lmeException.getExceptionClass();
-			String msg = lmeException.getExceptionMessage();
-			List<String> st = lmeException.getStackTrace();
-
-			stackTrace.append('\n').append("Stacktrace=").append(ex).append(": ").append(msg);
-			for (String stLine : st) {
-				stackTrace.append('\n').append("\t at ").append(stLine);
-			}
-		}
-		return MessageFormatter.arrayFormat(LOG_STRING, new String[] {logEventName, integrationScenarioId, contractId, logMessage, serviceImplementation, HOST_NAME, HOST_IP, componentId, endpoint, messageId, businessCorrelationId, businessContextIdString, extraInfoString, payload, stackTrace.toString(), logEventName}).getMessage();
-	}
-	
-	private String businessContextIdToString(List<BusinessContextId> businessContextIds) {
-		
-		if (businessContextIds == null) return "";
-		
-		StringBuffer businessContextIdString = new StringBuffer();
-		for (BusinessContextId bci : businessContextIds) {
-			businessContextIdString.append("\n-").append(bci.getName()).append("=").append(bci.getValue());
-		}
-		return businessContextIdString.toString();
-	}
-
-	private String extraInfoToString(List<ExtraInfo> extraInfo) {
-		
-		if (extraInfo == null) return "";
-		
-		StringBuffer extraInfoString = new StringBuffer();
-		for (ExtraInfo ei : extraInfo) {
-			extraInfoString.append("\n-").append(ei.getName()).append("=").append(ei.getValue());
-		}
-		return extraInfoString.toString();
-	}
-
 	private String getServerId() {
 
 		if (serverId != null) return serverId;
 		
-		if (this.muleContext == null) return "UNKNOWN.MULE_CONTEXT"; 
+		if (this.muleContext == null) return UNKNOWN_MULE_CONTEXT; 
 
 		MuleConfiguration mConf = this.muleContext.getConfiguration();
 		
-		if (mConf == null) return "UNKNOWN.MULE_CONFIGURATION"; 
+		if (mConf == null) return UNKNOWN_MULE_CONFIGURATION; 
 		
 		return serverId = mConf.getId();
 	}
@@ -367,7 +279,7 @@ public class EventLogger {
 		MuleMessage message, 
 		String logMessage,
 		Map<String, String> businessContextId,
-		Map<String, String> extraInfo,
+		SessionInfo extraInfo,
 		Object payload,
 		Throwable exception) {
 
@@ -521,57 +433,4 @@ public class EventLogger {
 		return logEvent;
 	}
 	
-	//
-	public void addSessionInfo(MuleMessage message, Map<String, String> map) {
-		map.put(VPUtil.SENDER_ID, (String) message.getProperty(VPUtil.SENDER_ID, PropertyScope.SESSION));
-		map.put(VPUtil.RECEIVER_ID, (String) message.getProperty(VPUtil.RECEIVER_ID, PropertyScope.SESSION));
-		map.put(VPUtil.ORIGINAL_SERVICE_CONSUMER_HSA_ID, (String) message.getProperty(VPUtil.ORIGINAL_SERVICE_CONSUMER_HSA_ID, PropertyScope.SESSION));
-		map.put(VPUtil.RIV_VERSION, (String) message.getProperty(VPUtil.RIV_VERSION, PropertyScope.SESSION));
-		map.put(VPUtil.WSDL_NAMESPACE, (String) message.getProperty(VPUtil.WSDL_NAMESPACE, PropertyScope.SESSION));
-		map.put(VPUtil.SERVICECONTRACT_NAMESPACE, (String) message.getProperty(VPUtil.SERVICECONTRACT_NAMESPACE, PropertyScope.SESSION));
-		map.put(VPUtil.SENDER_IP_ADRESS, (String) message.getProperty(VPUtil.SENDER_IP_ADRESS, PropertyScope.SESSION));
-		
-		// extract inbound/invocation scoped data
-		{
-			String httpXForwardedProto = message.getInvocationProperty(VPUtil.VP_X_FORWARDED_PROTO);
-			if (httpXForwardedProto != null) {
-				map.put(VPUtil.VP_X_FORWARDED_PROTO, httpXForwardedProto);
-				// only log on first occasion
-				message.removeProperty(VPUtil.VP_X_FORWARDED_PROTO, PropertyScope.INVOCATION);
-			}
-			String httpXForwardedHost = message.getInvocationProperty(VPUtil.VP_X_FORWARDED_HOST);
-			if (httpXForwardedHost != null) {
-				map.put(VPUtil.VP_X_FORWARDED_HOST, httpXForwardedHost);
-				// only log on first occasion
-				message.removeProperty(VPUtil.VP_X_FORWARDED_HOST, PropertyScope.INVOCATION);
-			}
-			String httpXForwardedPort = message.getInvocationProperty(VPUtil.VP_X_FORWARDED_PORT);
-			if (httpXForwardedPort != null) {
-				map.put(VPUtil.VP_X_FORWARDED_PORT, httpXForwardedPort);
-				// only log on first occasion
-				message.removeProperty(VPUtil.VP_X_FORWARDED_PORT, PropertyScope.INVOCATION);
-			}
-		}
-		
-		// extract MDC data
-		if (MdcLogTrace.get(MdcLogTrace.ROUTER_RESOLVE_VAGVAL_TRACE) != null) {
-			map.put(MdcLogTrace.ROUTER_RESOLVE_VAGVAL_TRACE, MdcLogTrace.get(MdcLogTrace.ROUTER_RESOLVE_VAGVAL_TRACE));
-			map.put(MdcLogTrace.ROUTER_RESOLVE_ANROPSBEHORIGHET_TRACE, MdcLogTrace.get(MdcLogTrace.ROUTER_RESOLVE_ANROPSBEHORIGHET_TRACE));
-		}
-		
-		String endpoint = message.getProperty(VPUtil.ENDPOINT_URL, PropertyScope.SESSION);
-		if (endpoint != null) {
-			map.put(VPUtil.ENDPOINT_URL, endpoint);
-		}
-		final Boolean error = (Boolean) message.getProperty(VPUtil.SESSION_ERROR, PropertyScope.SESSION);
-		if (Boolean.TRUE.equals(error)) {
-			map.put(VPUtil.SESSION_ERROR, error.toString());
-			map.put(VPUtil.SESSION_ERROR_DESCRIPTION,
-					VPUtil.nvl((String) message.getProperty(VPUtil.SESSION_ERROR_DESCRIPTION, PropertyScope.SESSION)));
-			map.put(VPUtil.SESSION_ERROR_TECHNICAL_DESCRIPTION,
-					VPUtil.nvl((String) message.getProperty(VPUtil.SESSION_ERROR_TECHNICAL_DESCRIPTION, PropertyScope.SESSION)));
-			map.put(VPUtil.SESSION_ERROR_CODE,
-					VPUtil.nvl((String) message.getProperty(VPUtil.SESSION_ERROR_CODE, PropertyScope.SESSION)));
-		}
-	}
 }

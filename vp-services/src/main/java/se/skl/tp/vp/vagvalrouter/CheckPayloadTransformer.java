@@ -23,6 +23,7 @@ package se.skl.tp.vp.vagvalrouter;
 import org.mule.RequestContext;
 import org.mule.api.MuleEventContext;
 import org.mule.api.MuleMessage;
+import org.mule.api.context.MuleContextAware;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 import org.slf4j.Logger;
@@ -30,8 +31,12 @@ import org.slf4j.LoggerFactory;
 import org.soitoolkit.commons.mule.jaxb.JaxbObjectToXmlTransformer;
 import se.skl.tp.vp.exceptions.VpSemanticErrorCodeEnum;
 import se.skl.tp.vp.exceptions.VpSemanticException;
-import se.skl.tp.vp.util.EventLogger;
+import se.skl.tp.vp.logging.EventLogger;
+import se.skl.tp.vp.logging.EventLoggerFactory;
+import se.skl.tp.vp.logging.SessionInfo;
 import se.skl.tp.vp.util.MessageProperties;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 
 import static se.skl.tp.vp.util.VPUtil.setSoapFaultInResponse;
 
@@ -45,10 +50,10 @@ import java.util.Map;
  * 
  */
 @SuppressWarnings("deprecation")
-public class CheckPayloadTransformer extends AbstractMessageTransformer{
+public class CheckPayloadTransformer extends AbstractMessageTransformer implements MuleContextAware {
 	
 	private static final Logger log = LoggerFactory.getLogger(CheckPayloadTransformer.class);
-	private final EventLogger eventLogger = new EventLogger();	
+	private final EventLogger<MuleMessage> eventLogger = EventLoggerFactory.createInstance();
 	private static final String nullPayload = "{NullPayload}";
 	private static final Integer HTTP_STATUS_500 = 500;
 	private static final String SOAP_XMLNS = "http://schemas.xmlsoap.org/soap/envelope/";
@@ -119,8 +124,12 @@ public class CheckPayloadTransformer extends AbstractMessageTransformer{
 			}
 			
 			if(cause != null) {
-				setSoapFaultInResponse(message, cause, VpSemanticErrorCodeEnum.VP009.toString());
-				logException(message, new VpSemanticException(cause, VpSemanticErrorCodeEnum.VP009));								
+				
+				VPMessage m = VPMessageFactory.createInstance(message, super.muleContext);
+				
+				setSoapFaultInResponse(
+						m, cause, VpSemanticErrorCodeEnum.VP009.toString());
+				logException(m, new VpSemanticException(cause, VpSemanticErrorCodeEnum.VP009));								
 			}
 				
 		} catch (Exception e) {
@@ -129,15 +138,17 @@ public class CheckPayloadTransformer extends AbstractMessageTransformer{
 		return message;
     }
     
-	@SuppressWarnings("deprecation")
-	private void logException(MuleMessage message, Throwable t) {
-		Map<String, String> extraInfo = new HashMap<String, String>();
+	private void logException(VPMessage message, Throwable t) {
+		
+		MuleMessage msg = message.getMessage();
+		SessionInfo extraInfo = new SessionInfo();
 		extraInfo.put("source", getClass().getName());
-		eventLogger.setMuleContext(message.getMuleContext());	
-		eventLogger.addSessionInfo(message, extraInfo);
-		eventLogger.logErrorEvent(t, message, null, extraInfo);
+		extraInfo.addSessionInfo(msg);
+		eventLogger.setContext(message.getContext());	
+		eventLogger.logErrorEvent(t, msg, null, extraInfo);		
 	}
 
+	
 	private String left(String s, int len) {
 		if(s == null)
 			return null;

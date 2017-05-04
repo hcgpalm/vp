@@ -34,6 +34,8 @@ import org.mockito.Mockito;
 import org.mule.api.MuleMessage;
 
 import se.skl.tp.vp.exceptions.VpSemanticException;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 import se.skl.tp.vp.util.WhiteListHandler;
 
 public class CertificateExtractorBaseTest {
@@ -51,9 +53,10 @@ public class CertificateExtractorBaseTest {
 		final Pattern pattern = Pattern.compile("OU=([^,]+)");
 
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
+		final VPMessage message = VPMessageFactory.createInstance(msg);
 
 		whiteListHandler.setWhiteList("127.0.0.1");
-		final CertificateExtractorBase helper = new CertificateExtractorBase(msg, pattern, whiteListHandler);
+		final CertificateExtractorBase helper = new CertificateExtractorBase(message, pattern, whiteListHandler);
 		final String sender = helper.extractSenderIdFromCertificate(cert);
 
 		assertNotNull(sender);
@@ -77,8 +80,9 @@ public class CertificateExtractorBaseTest {
 		final Pattern pattern = Pattern.compile("OU=([^,]+)");
 
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
+		final VPMessage message = VPMessageFactory.createInstance(msg);
 
-		final CertificateExtractorBase helper = new CertificateExtractorBase(msg, pattern, "127.0.0.1");
+		final CertificateExtractorBase helper = new CertificateExtractorBase(message, pattern, "127.0.0.1");
 		final String s = helper.extractSenderIdFromCertificate(cert);
 
 		System.out.println("Sender: " + s);
@@ -90,7 +94,8 @@ public class CertificateExtractorBaseTest {
 	@Test
 	public void testExtractSenderWithNullCert() throws Exception {
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
-		final CertificateExtractorBase helper = new CertificateExtractorBase(msg, null, "");
+		final VPMessage message = VPMessageFactory.createInstance(msg);
+		final CertificateExtractorBase helper = new CertificateExtractorBase(message, null, "");
 
 		try {
 			helper.extractSenderIdFromCertificate(null);
@@ -105,7 +110,8 @@ public class CertificateExtractorBaseTest {
 	@Test
 	public void testExtractSenderWithNullPattern() throws Exception {
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
-		final CertificateExtractorBase helper = new CertificateExtractorBase(msg, null, "");
+		final VPMessage message = VPMessageFactory.createInstance(msg);
+		final CertificateExtractorBase helper = new CertificateExtractorBase(message, null, "");
 
 		try {
 			helper.extractSenderIdFromCertificate(Mockito.mock(X509Certificate.class));
@@ -126,8 +132,8 @@ public class CertificateExtractorBaseTest {
 		final Pattern pattern = Pattern.compile("OU=([^,]+)");
 
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
-
-		final CertificateExtractorBase helper = new CertificateExtractorBase(msg, pattern, "");
+		final VPMessage message = VPMessageFactory.createInstance(msg);
+		final CertificateExtractorBase helper = new CertificateExtractorBase(message, pattern, "");
 
 		try {
 			helper.extractSenderIdFromCertificate(cert);

@@ -24,12 +24,14 @@ import java.security.cert.X509Certificate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.mule.api.MuleMessage;
+import org.mule.api.transport.PropertyScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.skl.tp.vp.exceptions.VpSemanticErrorCodeEnum;
 import se.skl.tp.vp.exceptions.VpSemanticException;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.WhiteListHandler;
 import se.skl.tp.vp.util.helper.VPHelperSupport;
 
@@ -44,14 +46,14 @@ public class CertificateExtractorBase extends VPHelperSupport {
 	private Pattern pattern;
 	private WhiteListHandler whiteListHandler;
 
-	public CertificateExtractorBase(MuleMessage muleMessage, Pattern pattern, WhiteListHandler whiteListHandler) {
-		super(muleMessage);
+	public CertificateExtractorBase(VPMessage message, Pattern pattern, WhiteListHandler whiteListHandler) {
+		super(message);
 		this.pattern = pattern;
 		this.whiteListHandler = whiteListHandler;
 	}
 
-	public CertificateExtractorBase(MuleMessage muleMessage, Pattern pattern, String whiteList) {
-		super(muleMessage);
+	public CertificateExtractorBase(VPMessage message, Pattern pattern, String whiteList) {
+		super(message);
 		this.pattern = pattern;
 		this.whiteListHandler = new WhiteListHandler();
 		this.whiteListHandler.setWhiteList(whiteList);
@@ -71,6 +73,11 @@ public class CertificateExtractorBase extends VPHelperSupport {
 
 		final String principalName = certificate.getSubjectX500Principal().getName();
 		return extractSenderFromPrincipal(principalName);
+	}
+
+
+	public String getCallersIp() {
+		return VPUtil.extractSocketIpAddress(getVPMessage());		
 	}
 	
 	public Pattern getPattern() {
@@ -104,4 +111,8 @@ public class CertificateExtractorBase extends VPHelperSupport {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T getProperty(String name, PropertyScope scope) {
+		return (T)this.getVPMessage().getProperty(name, scope);
+	}
 }

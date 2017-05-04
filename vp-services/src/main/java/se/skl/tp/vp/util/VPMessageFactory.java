@@ -21,21 +21,36 @@
 package se.skl.tp.vp.util;
 
 import org.mule.api.MuleMessage;
-import org.mule.api.transformer.TransformerException;
-import org.mule.transformer.AbstractMessageTransformer;
 
-/**
- * Clear the MDC.
- * 
- * @author hakan
- */
-public class MdcLogTraceCleanerTransformer extends AbstractMessageTransformer {
+import se.skl.tp.vp.exceptions.VpSemanticErrorCodeEnum;
+import se.skl.tp.vp.exceptions.VpSemanticException;
 
-	@Override
-	public Object transformMessage(MuleMessage message, String outputEncoding)
-			throws TransformerException {
-		MdcLogTrace.clear();
-		return message;
+public class VPMessageFactory {
+
+	public static VPMessage createInstance(Object message) {
+		
+		if(message == null)
+			return null;
+		else if(message instanceof VPMessage)
+			return (VPMessage)message;
+		else if(message instanceof MuleMessage) {
+			VPMessage m = new VPMuleMessage((MuleMessage)message);
+			return m;
+		}
+		throw new VpSemanticException("Unknown message type", VpSemanticErrorCodeEnum.VP012);
 	}
-
+	
+	public static VPMessage createInstance(Object message, Object context) {
+		
+		if(message == null)
+			return null;
+		else if(message instanceof VPMessage)
+			return (VPMessage)message;
+		else if(message instanceof MuleMessage) {
+			VPMessage m = new VPMuleMessage((MuleMessage)message);
+			m.setContext(context);
+			return m;
+		}
+		throw new VpSemanticException("Unknown message type", VpSemanticErrorCodeEnum.VP012);
+	}
 }

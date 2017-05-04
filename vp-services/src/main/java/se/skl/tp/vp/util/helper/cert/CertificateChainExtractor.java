@@ -24,13 +24,13 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.regex.Pattern;
 
-import org.mule.api.MuleMessage;
 import org.mule.api.transport.PropertyScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.skl.tp.vp.exceptions.VpSemanticErrorCodeEnum;
 import se.skl.tp.vp.exceptions.VpSemanticException;
+import se.skl.tp.vp.util.VPMessage;
 import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.WhiteListHandler;
 
@@ -42,8 +42,8 @@ public class CertificateChainExtractor extends CertificateExtractorBase implemen
 
 	private static Logger log = LoggerFactory.getLogger(CertificateChainExtractor.class);
 
-	public CertificateChainExtractor(MuleMessage muleMessage, Pattern pattern, WhiteListHandler whiteListHandler) {
-		super(muleMessage, pattern, whiteListHandler);
+	public CertificateChainExtractor(VPMessage message, Pattern pattern, WhiteListHandler whiteListHandler) {
+		super(message, pattern, whiteListHandler);
 	}
 
 	@Override
@@ -59,8 +59,8 @@ public class CertificateChainExtractor extends CertificateExtractorBase implemen
 	 * @return
 	 */
 	private X509Certificate extraxtCertFromChain() {
-		final Certificate[] certificateChain = (Certificate[]) this.getMuleMessage().getProperty(
-				VPUtil.PEER_CERTIFICATES, PropertyScope.OUTBOUND);
+		final Certificate[] certificateChain = (Certificate[]) getVPMessage().getOutboundProperty(
+				VPUtil.PEER_CERTIFICATES);
 		if (certificateChain != null) {
 			try {
 				return (X509Certificate) certificateChain[0];

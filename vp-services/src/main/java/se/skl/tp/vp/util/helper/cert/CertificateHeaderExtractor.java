@@ -24,7 +24,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.regex.Pattern;
 
-import org.mule.api.MuleMessage;
 import org.mule.api.transport.PropertyScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import se.skl.tp.vp.exceptions.VpSemanticErrorCodeEnum;
 import se.skl.tp.vp.exceptions.VpSemanticException;
 import se.skl.tp.vp.util.HttpHeaders;
+import se.skl.tp.vp.util.VPMessage;
 import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.WhiteListHandler;
 
@@ -45,8 +45,8 @@ public class CertificateHeaderExtractor extends CertificateExtractorBase impleme
 
 	private static Logger log = LoggerFactory.getLogger(CertificateHeaderExtractor.class);
 
-	public CertificateHeaderExtractor(MuleMessage muleMessage, Pattern pattern, WhiteListHandler whiteListHandler) {
-		super(muleMessage, pattern, whiteListHandler);
+	public CertificateHeaderExtractor(VPMessage message, Pattern pattern, WhiteListHandler whiteListHandler) {
+		super(message, pattern, whiteListHandler);
 	}
 
 	@Override
@@ -55,14 +55,14 @@ public class CertificateHeaderExtractor extends CertificateExtractorBase impleme
 		log.debug("Extracting from http header...");
 
 		// Check whitelist
-		String callersIp = VPUtil.extractSocketIpAddress(getMuleMessage());
+		String callersIp = getCallersIp();
 		if(!isCallerOnWhiteList(callersIp, HttpHeaders.REVERSE_PROXY_HEADER_NAME)){
 			throw VPUtil.createVP011Exception(callersIp, HttpHeaders.REVERSE_PROXY_HEADER_NAME);
 		}
 
 		log.debug("Extracting X509Certificate senderId from header");
 
-		Object certificate = this.getMuleMessage().getProperty(HttpHeaders.REVERSE_PROXY_HEADER_NAME, PropertyScope.INBOUND);
+		Object certificate = getVPMessage().getInboundProperty(HttpHeaders.REVERSE_PROXY_HEADER_NAME);
 
 		try {
 			if (isX509Certificate(certificate)) {

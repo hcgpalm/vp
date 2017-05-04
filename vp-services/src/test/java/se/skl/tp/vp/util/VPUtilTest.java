@@ -54,7 +54,8 @@ public class VPUtilTest {
 		MuleMessage message = mock(MuleMessage.class);
 		when(message.getProperty(VPUtil.REMOTE_ADDR, PropertyScope.INBOUND)).thenReturn(REMOTE_ADDRESS);
 		
-		String ipAddress = VPUtil.extractIpAddress(message);
+		VPMessage m = VPMessageFactory.createInstance(message);
+		String ipAddress = VPUtil.extractIpAddress(m);
 		assertEquals("127.0.0.1", ipAddress);
 	}
 	

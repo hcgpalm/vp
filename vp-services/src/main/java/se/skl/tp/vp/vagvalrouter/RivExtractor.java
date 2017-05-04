@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.skl.tp.vp.util.ExecutionTimer;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.helper.PayloadHelper;
 import se.skl.tp.vp.util.helper.PayloadHelper.PayloadInfo;
@@ -73,7 +75,8 @@ public class RivExtractor extends AbstractMessageTransformer {
 			log.warn("No CXF service namespace in invocation scope");			
 		}
 		
-		final PayloadHelper payloadHelper = new PayloadHelper(msg);
+		VPMessage m = VPMessageFactory.createInstance(msg);
+		final PayloadHelper payloadHelper = new PayloadHelper(m);
 		PayloadInfo payloadInfo = payloadHelper.extractInfoFromPayload();
 		
 		if(payloadInfo.getServiceContractNamespace() != null){

@@ -38,6 +38,8 @@ import org.mule.api.transport.PropertyScope;
 
 import se.skl.tp.vp.exceptions.VpSemanticException;
 import se.skl.tp.vp.util.HttpHeaders;
+import se.skl.tp.vp.util.VPMessage;
+import se.skl.tp.vp.util.VPMessageFactory;
 import se.skl.tp.vp.util.VPUtil;
 import se.skl.tp.vp.util.WhiteListHandler;
 
@@ -52,11 +54,13 @@ public class CertificateChainExtractorTest {
 	 */
 	@Test
 	public void testExtractX509CertificateCertificateFromChain() {
-
+		
 		final MuleMessage msg = mockCert();
+		final VPMessage message = VPMessageFactory.createInstance(msg);
 
 		whiteListHandler.setWhiteList("127.0.0.1");
-		final CertificateChainExtractor helper = new CertificateChainExtractor(msg, pattern, whiteListHandler);
+		
+		final CertificateChainExtractor helper = new CertificateChainExtractor(message, pattern, whiteListHandler);
 		final String senderId = helper.extractSenderIdFromCertificate();
 
 		Mockito.verify(msg, Mockito.times(0)).getProperty(HttpHeaders.REVERSE_PROXY_HEADER_NAME, PropertyScope.INBOUND);
@@ -71,9 +75,10 @@ public class CertificateChainExtractorTest {
 	public void testExtractCertificateWhenChainIsNull() throws Exception {
 
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
+		final VPMessage message = VPMessageFactory.createInstance(msg);
 
 		whiteListHandler.setWhiteList("127.0.0.1");
-		final CertificateChainExtractor helper = new CertificateChainExtractor(msg, null, whiteListHandler);
+		final CertificateChainExtractor helper = new CertificateChainExtractor(message, null, whiteListHandler);
 		try {
 			helper.extractSenderIdFromCertificate();
 
@@ -97,10 +102,12 @@ public class CertificateChainExtractorTest {
 		certs[0] = cert;
 
 		final MuleMessage msg = Mockito.mock(MuleMessage.class);
-		Mockito.when(msg.getProperty(VPUtil.PEER_CERTIFICATES, PropertyScope.OUTBOUND)).thenReturn(certs);
+		final VPMessage message = VPMessageFactory.createInstance(msg);
+
+		Mockito.when(message.getOutboundProperty(VPUtil.PEER_CERTIFICATES)).thenReturn(certs);
 
 		whiteListHandler.setWhiteList("127.0.0.1");
-		final CertificateChainExtractor helper = new CertificateChainExtractor(msg, null, whiteListHandler);
+		final CertificateChainExtractor helper = new CertificateChainExtractor(message, null, whiteListHandler);
 
 		try {
 			helper.extractSenderIdFromCertificate();

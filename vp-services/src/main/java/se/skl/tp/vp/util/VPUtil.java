@@ -23,10 +23,6 @@ package se.skl.tp.vp.util;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.mule.api.MuleEvent;
-import org.mule.api.MuleMessage;
-import org.mule.api.config.MuleProperties;
-import org.mule.api.transport.PropertyScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,54 +33,11 @@ import se.skl.tp.vp.exceptions.VpSemanticException;
  * Utility class for the virtualization platform
  * @author Marcus Krantz [marcus.krantz@callistaenterprise.se]
  */
-public final class VPUtil {
+public final class VPUtil extends VPConstants{
 	
+	@SuppressWarnings("unused")
 	private static final Logger log = LoggerFactory.getLogger(VPUtil.class);
 
-	public static final String REMOTE_ADDR = MuleProperties.MULE_REMOTE_CLIENT_ADDRESS;
-	public static final String MULE_PROXY_ADDRESS = MuleProperties.MULE_PROXY_ADDRESS;
-	
-	public static final String CONSUMER_CONNECTOR_HTTPS_NAME = "VPConsumerConnector";
-	public static final String CONSUMER_CONNECTOR_HTTPS_KEEPALIVE_NAME = "VPConsumerConnectorKeepAlive";
-	public static final String CONSUMER_CONNECTOR_HTTP_NAME = "VPInsecureConnector";
-	
-	public static final String PEER_CERTIFICATES = "PEER_CERTIFICATES";
-	
-	public static final String SESSION_ERROR = "sessionStatus";
-	public static final String SESSION_ERROR_DESCRIPTION = "sessionErrorDescription";
-	public static final String SESSION_ERROR_TECHNICAL_DESCRIPTION = "sessionErrorTechnicalDescription";
-	public static final String SESSION_ERROR_CODE = "errorCode";
-	
-	//Session scoped variables used in internal flows, not to mix with http headers prefixed x-something used for external http headers
-	public static final String CORRELATION_ID = "soitoolkit_correlationId";
-	public static final String ORIGINAL_SERVICE_CONSUMER_HSA_ID = "originalServiceconsumerHsaid";
-	public static final String RECEIVER_ID = "receiverid";
-	public static final String SENDER_ID = "senderid";
-	public static final String RIV_VERSION = "rivversion";
-	public static final String SENDER_IP_ADRESS = "senderIpAdress";
-	
-	public static final String CXF_SERVICE_NAMESPACE = "cxf_service";
-	public static final String WSDL_NAMESPACE = "wsdl_namespace";
-	public static final String SERVICECONTRACT_NAMESPACE = "servicecontract_namespace";
-	
-	public static final String ENDPOINT_URL = "endpoint_url";
-	
-	public static final String IS_HTTPS = "isHttps";
-	public static final String HTTPS_PROTOCOL = "https://";
-	
-	public static final String CERT_SENDERID_PATTERN = "=([^,]+)";
-	
-	public static final String TIMER_TOTAL = "total";
-	public static final String TIMER_ROUTE = "route";
-	public static final String TIMER_ENDPOINT = "endpoint_time";
-	
-	public static final String VP_SEMANTIC_EXCEPTION = "VpSemanticException";
-	
-	// Invocation scoped variables, not to mix with external http headers
-	public static final String VP_X_FORWARDED_PROTO = "httpXForwardedProto";
-	public static final String VP_X_FORWARDED_HOST = "httpXForwardedHost";
-	public static final String VP_X_FORWARDED_PORT = "httpXForwardedPort";
-	public static final String X_MULE_REMOTE_CLIENT_ADDRESS = "X_MULE_REMOTE_CLIENT_ADDRESS";
 	
 	/*
 	 * Generic soap fault template, just use String.format(SOAP_FAULT, message);
@@ -110,12 +63,12 @@ public final class VPUtil {
 		return (qname == null) ? null : qname.getNamespaceURI();
 	}
 	
-	public static String extractIpAddress(final MuleMessage message) {
+	public static String extractIpAddress(final VPMessage message) {
 		// first check if we have a proxy-address
 		// Ref: MULE-7263
-		String remoteAddress = message.getProperty(VPUtil.MULE_PROXY_ADDRESS, PropertyScope.INBOUND);
+		String remoteAddress = message.getInboundProperty(VPUtil.MULE_PROXY_ADDRESS);
 		if (remoteAddress == null) {
-			remoteAddress = message.getProperty(VPUtil.REMOTE_ADDR, PropertyScope.INBOUND);
+			remoteAddress = message.getInboundProperty(VPUtil.REMOTE_ADDR);
 		}
 		
 		// format extracted address
@@ -142,8 +95,8 @@ public final class VPUtil {
 	 * @param message
 	 * @return
 	 */
-	public static String extractSocketIpAddress(final MuleMessage message) {
-		String remoteAddress = message.getProperty(X_MULE_REMOTE_CLIENT_ADDRESS, PropertyScope.INBOUND);
+	public static String extractSocketIpAddress(final VPMessage message) {
+		String remoteAddress = message.getInboundProperty(X_MULE_REMOTE_CLIENT_ADDRESS);
 		if (remoteAddress == null) {
 			return remoteAddress = extractIpAddress(message);
 		}
@@ -244,12 +197,12 @@ public final class VPUtil {
 				VpSemanticErrorCodeEnum.VP011);
 	}
 	
-	public static void setSoapFaultInResponse(MuleMessage message, String cause, String errorCode){
+	public static void setSoapFaultInResponse(VPMessage message, String cause, String errorCode){
 		String soapFault = VPUtil.generateSoap11FaultWithCause(cause);
 		message.setPayload(soapFault);
 		message.setExceptionPayload(null);
-		message.setProperty("http.status", 500, PropertyScope.OUTBOUND);
-		message.setProperty(VPUtil.SESSION_ERROR, Boolean.TRUE, PropertyScope.SESSION);
-		message.setProperty(VPUtil.SESSION_ERROR_CODE, errorCode, PropertyScope.SESSION);
+		message.setOutboundProperty("http.status", 500);
+		message.setSessionProperty(VPUtil.SESSION_ERROR, Boolean.TRUE);
+		message.setSessionProperty(VPUtil.SESSION_ERROR_CODE, errorCode);
 	}
 }

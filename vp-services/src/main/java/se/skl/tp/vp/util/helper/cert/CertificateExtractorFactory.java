@@ -22,12 +22,11 @@ package se.skl.tp.vp.util.helper.cert;
 
 import java.util.regex.Pattern;
 
-import org.mule.api.MuleMessage;
-import org.mule.api.transport.PropertyScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.skl.tp.vp.util.HttpHeaders;
+import se.skl.tp.vp.util.VPMessage;
 import se.skl.tp.vp.util.WhiteListHandler;
 import se.skl.tp.vp.util.helper.VPHelperSupport;
 
@@ -41,8 +40,8 @@ public class CertificateExtractorFactory extends VPHelperSupport {
 	private Pattern pattern;
 	private WhiteListHandler whiteListHandler;
 
-	public CertificateExtractorFactory(MuleMessage muleMessage, Pattern pattern, WhiteListHandler whiteListHandler) {
-		super(muleMessage);
+	public CertificateExtractorFactory(VPMessage message, Pattern pattern, WhiteListHandler whiteListHandler) {
+		super(message);
 		this.pattern = pattern;
 		this.whiteListHandler = whiteListHandler;
 	}
@@ -59,14 +58,14 @@ public class CertificateExtractorFactory extends VPHelperSupport {
 		log.debug("Get extractor for X509Certificate. Reverse proxy mode: {}", isReverseProxy);
 
 		if (isReverseProxy) {
-			return new CertificateHeaderExtractor(getMuleMessage(), getPattern(), getWhiteListHandler());
+			return new CertificateHeaderExtractor(getVPMessage(), getPattern(), getWhiteListHandler());
 		} else {
-			return new CertificateChainExtractor(getMuleMessage(), getPattern(), getWhiteListHandler());
+			return new CertificateChainExtractor(getVPMessage(), getPattern(), getWhiteListHandler());
 		}
 	}
 
 	private boolean isReverseProxy() {
-		return this.getMuleMessage().getProperty(HttpHeaders.REVERSE_PROXY_HEADER_NAME, PropertyScope.INBOUND) != null;
+		return this.getVPMessage().getInboundProperty(HttpHeaders.REVERSE_PROXY_HEADER_NAME) != null;
 	}
 	
 	public Pattern getPattern() {

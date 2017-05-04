@@ -59,7 +59,13 @@ public class AddressingHelper {
 	public String getAvailableRivProfile(MuleMessage muleMessage) {
 
 		final VagvalInput input = this.createRequestToServiceDirectory(muleMessage);
-		final VisaVagvalResponse response = agent.visaVagval(this.createVisaVagvalRequest(input));
+		final VisaVagvalResponse response;
+		try {
+			response = agent.visaVagval(this.createVisaVagvalRequest(input));
+		} catch(RuntimeException e) {
+			log.error("Error when calling visaVägval", e);
+			throw e;
+		}
 
 		final List<VirtualiseringsInfoType> virts = this.getAllVirtualizedServices(response, input);
 

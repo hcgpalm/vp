@@ -23,10 +23,10 @@ package se.skl.tp.vp.util.helper;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.mule.api.MuleMessage;
 import org.mule.module.xml.stax.ReversibleXMLStreamReader;
 
 import se.skl.tp.vp.exceptions.VpTechnicalException;
+import se.skl.tp.vp.util.VPMessage;
 
 /**
  * Helper class for working with the
@@ -36,8 +36,8 @@ import se.skl.tp.vp.exceptions.VpTechnicalException;
  */
 public class PayloadHelper extends VPHelperSupport {
 
-	public PayloadHelper(MuleMessage muleMessage) {
-		super(muleMessage);
+	public PayloadHelper(VPMessage message) {
+		super(message);
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class PayloadHelper extends VPHelperSupport {
 	 * @return ReciverId, service contract namespace or null if not found
 	 */
 	public PayloadInfo extractInfoFromPayload() {
-		Object payload = getMuleMessage().getPayload();
+		Object payload = getVPMessage().getPayload();
 		if (!(payload instanceof ReversibleXMLStreamReader)) {
 			this.getLog().warn("Payload not xmlstream! Unable to extract important RIV information (receiverid, service contract namespace): { payload: {} }", payload);
 			return new PayloadInfo();

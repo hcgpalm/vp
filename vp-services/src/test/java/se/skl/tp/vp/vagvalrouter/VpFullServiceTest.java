@@ -234,7 +234,8 @@ public class VpFullServiceTest extends AbstractTestCase {
     		testConsumer.callGetProductDetail(PRODUCT_ID, TJANSTE_ADRESS, LOGICAL_ADDRESS_500);
     		fail("Expected error here!");
     	} catch (Exception ex) {
-			assertTrue(ex.getMessage().contains("Invalid content found!"));
+    		System.out.println(">>>>>>>>>>>>" + ex.getMessage());
+			assertTrue(ex.getMessage(), ex.getMessage().contains("Invalid content found!"));
     	}
 	}
 	

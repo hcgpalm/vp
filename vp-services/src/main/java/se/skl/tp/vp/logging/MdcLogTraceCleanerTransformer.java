@@ -18,28 +18,24 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package se.skl.tp.vp.util.helper;
+package se.skl.tp.vp.logging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.mule.api.MuleMessage;
+import org.mule.api.transformer.TransformerException;
+import org.mule.transformer.AbstractMessageTransformer;
 
-import se.skl.tp.vp.util.VPMessage;
+/**
+ * Clear the MDC.
+ * 
+ * @author hakan
+ */
+public class MdcLogTraceCleanerTransformer extends AbstractMessageTransformer {
 
-public abstract class VPHelperSupport {
-
-	private Logger log = LoggerFactory.getLogger(this.getClass());
-	
-	private VPMessage vpMessage;
-
-	public VPHelperSupport(final VPMessage muleMessage) {
-		this.vpMessage = muleMessage;
+	@Override
+	public Object transformMessage(MuleMessage message, String outputEncoding)
+			throws TransformerException {
+		MdcLogTrace.clear();
+		return message;
 	}
-	
-	public VPMessage getVPMessage() {
-		return this.vpMessage;
-	}
-		
-	protected Logger getLog() {
-		return this.log;
-	}
+
 }

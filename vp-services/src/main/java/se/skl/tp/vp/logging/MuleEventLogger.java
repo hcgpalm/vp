@@ -32,11 +32,7 @@ import java.util.Set;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.mule.RequestContext;
 import org.mule.api.MuleContext;
 import org.mule.api.MuleEventContext;
@@ -56,7 +52,6 @@ import org.soitoolkit.commons.logentry.schema.v1.LogMetadataInfoType;
 import org.soitoolkit.commons.logentry.schema.v1.LogRuntimeInfoType;
 import org.soitoolkit.commons.logentry.schema.v1.LogRuntimeInfoType.BusinessContextId;
 import org.soitoolkit.commons.mule.jaxb.JaxbObjectToXmlTransformer;
-import org.soitoolkit.commons.mule.jaxb.JaxbUtil;
 import org.soitoolkit.commons.mule.util.MuleUtil;
 import org.soitoolkit.commons.mule.util.XmlUtil;
 
@@ -71,7 +66,7 @@ import se.skl.tp.vp.util.PayloadToStringTransformer;
  *
  */
 @SuppressWarnings("deprecation")
-public class MuleEventLogger extends EventLoggerBase implements EventLogger<MuleMessage> {
+public class MuleEventLogger extends JMSEventLogger implements EventLogger<MuleMessage> {
 
 	private static final String UNKNOWN_MULE_CONFIGURATION = "UNKNOWN.MULE_CONFIGURATION";
 
@@ -80,67 +75,28 @@ public class MuleEventLogger extends EventLoggerBase implements EventLogger<Mule
 	// Logger for normal logging of code execution	
 	private static final Logger log = LoggerFactory.getLogger(EventLogger.class);
 
-	// Creating JaxbUtil objects (i.e. JaxbContext objects)  are costly, so we only keep one instance.
-	// According to https://jaxb.dev.java.net/faq/index.html#threadSafety this should be fine since they are thread safe!
-	private static final JaxbUtil JAXB_UTIL = new JaxbUtil(LogEvent.class);
-	
+
 	private String serverId = null; // Can't read this one at class initialization because it is not set at that time. Can also be different for different loggers in the same JVM (e.g. multiple wars in one servlet container with shared classes?))
 	private MuleContext muleContext;
-	
-	private String logInfoQueueName = null;
-	private String logErrorQueueName = null;
-
-	
-	// Used to transform payloads that are jaxb-objects into a xml-string
-	private PayloadToStringTransformer payloadToStringTransformer;
 
 	private static boolean s_enableLogToJms = true;
 
-
-	/* (non-Javadoc)
-	 * @see se.skl.tp.vp.logging.EventLogger#setEnableLogToJms(boolean)
-	 */
-	@Override
-	public void setEnableLogToJms(boolean enableLogToJms) {	
-		s_enableLogToJms = enableLogToJms;
-		
-		log.debug("Logging to JMS is now {}", (s_enableLogToJms ? "enabled" : "disabled"));
-		if (log.isDebugEnabled()) {
-			ExceptionUtils.getFullStackTrace(new Exception());
-			log.trace("- setEnableLogToJms() is called from \n{}", ExceptionUtils.getFullStackTrace(new Exception()));			
-		}
-	}
 	
 	@Override
 	public <F> void setContext(F muleContext) {
 		log.debug("setMuleContext { muleContext: {} }", muleContext);
 		this.muleContext = (MuleContext)muleContext;
 	}
-	
-	/* (non-Javadoc)
-	 * @see se.skl.tp.vp.logging.EventLogger#setJaxbToXml(org.soitoolkit.commons.mule.jaxb.JaxbObjectToXmlTransformer)
-	 */
+
+
+	// Used to transform payloads that are jaxb-objects into a xml-string
+	private PayloadToStringTransformer payloadToStringTransformer;
+
 	@Override
 	public void setJaxbToXml(JaxbObjectToXmlTransformer jaxbToXml) {
 		this.payloadToStringTransformer  = new PayloadToStringTransformer(jaxbToXml);
 	}
 	
-	 /* (non-Javadoc)
-	 * @see se.skl.tp.vp.logging.EventLogger#setLogErrorQueueName(java.lang.String)
-	 */
-    @Override
-	public void setLogErrorQueueName(String logErrorQueueName) {
-        this.logErrorQueueName = logErrorQueueName;
-    }
-
-    /* (non-Javadoc)
-	 * @see se.skl.tp.vp.logging.EventLogger#setLogInfoQueueName(java.lang.String)
-	 */
-    @Override
-	public void setLogInfoQueueName(String logInfoQueueName) {
-        this.logInfoQueueName = logInfoQueueName;
-    }
-
 	//
 	/* (non-Javadoc)
 	 * @see se.skl.tp.vp.logging.EventLogger#logInfoEvent(org.mule.api.MuleMessage, java.lang.String, java.util.Map, java.util.Map)
@@ -195,70 +151,16 @@ public class MuleEventLogger extends EventLoggerBase implements EventLogger<Mule
 		logErrorEvent(logEvent);
 	}
 
-
-	private void dispatchInfoEvent(LogEvent logEvent) {
-		if (s_enableLogToJms) {
-			String msg = JAXB_UTIL.marshal(logEvent);
-			dispatchEvent(logInfoQueueName, msg);
-		}
-	}
-	
-	private void dispatchDebugEvent(LogEvent logEvent) {
-		if (s_enableLogToJms) {
-			String msg = JAXB_UTIL.marshal(logEvent);
-			dispatchEvent(logInfoQueueName, msg);
-		}
-	}
-
-	private void dispatchErrorEvent(LogEvent logEvent) {
-		if (s_enableLogToJms) {
-			String msg = JAXB_UTIL.marshal(logEvent);
-			dispatchEvent(logErrorQueueName, msg);
-		}
-	}
-
-	private void dispatchEvent(String queue, String msg) {
-		try {
-
-			Session s = null;
-			try {
-				s = getSession();
-				sendOneTextMessage(s, queue, msg);
-			} finally {
-	    		if (s != null) s.close(); 
-			}
-			
-		} catch (JMSException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Session getSession() throws JMSException {
-		JmsConnector jmsConn = (JmsConnector)MuleUtil.getSpringBean(this.muleContext, "soitoolkit-jms-connector");
+	private Session getSession(JmsConnector jmsConn) throws JMSException {
 		Connection c = jmsConn.getConnection();
 		Session s = c.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		return s;
 	}
 
-	/* (non-Javadoc)
-	 * @see se.skl.tp.vp.logging.EventLogger#sendOneTextMessage(javax.jms.Session, java.lang.String, java.lang.String)
-	 */
-	private void sendOneTextMessage(Session session, String queueName, String message) {
-
-        MessageProducer publisher = null;
-
-	    try {
-	    	publisher = session.createProducer(session.createQueue(queueName));
-	        TextMessage textMessage = session.createTextMessage(message);  
-	        publisher.send(textMessage);   
-	
-	    } catch (JMSException e) {
-	        throw new RuntimeException(e);
-	    } finally {
-	    	try {
-	    		if (publisher != null) publisher.close(); 
-	    	} catch (JMSException e) {}
-	    }
+	@Override
+	protected Session getSession() throws JMSException {
+		JmsConnector jmsConn = (JmsConnector)MuleUtil.getSpringBean(this.muleContext, "soitoolkit-jms-connector");
+		return getSession(jmsConn);
 	}
 
 	private String getServerId() {
@@ -427,8 +329,7 @@ public class MuleEventLogger extends EventLoggerBase implements EventLogger<Mule
 		// Create the final log event object
 		LogEvent logEvent = new LogEvent();
 		logEvent.setLogEntry(logEntry);
-		
-		
+				
 		// We are actually done :-)
 		return logEvent;
 	}

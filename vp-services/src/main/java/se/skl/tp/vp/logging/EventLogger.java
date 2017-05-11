@@ -21,6 +21,7 @@
 package se.skl.tp.vp.logging;
 
 import java.util.Map;
+
 import org.soitoolkit.commons.mule.jaxb.JaxbObjectToXmlTransformer;
 
 public interface EventLogger <T> {
@@ -31,19 +32,6 @@ public interface EventLogger <T> {
 	 * @param logEnableToJms
 	 */
 	void setEnableLogToJms(boolean enableLogToJms);
-
-	/**
-	 * Set context
-	 * @param context
-	 */
-	<F> void setContext(F context);
-
-	/**
-	 * Setter for the jaxbToXml property
-	 * 
-	 * @param jaxbToXml
-	 */
-	void setJaxbToXml(JaxbObjectToXmlTransformer jaxbToXml);
 
 	/**
 	 * Specify to which queue error messages should be sent.
@@ -59,11 +47,22 @@ public interface EventLogger <T> {
 	 */
 	void setLogInfoQueueName(String logInfoQueueName);
 
-	//
+	/**
+	 * Set context
+	 * @param context
+	 */
+	<F> void setContext(F context);
+
+	/**
+	 * Setter for the jaxbToXml property
+	 * 
+	 * @param jaxbToXml
+	 */
+	void setJaxbToXml(JaxbObjectToXmlTransformer jaxbToXml);
+
 	void logInfoEvent(T message, String logMessage, Map<String, String> businessContextId,
 			SessionInfo extraInfo);
 
-	//
 	void logErrorEvent(Throwable error, T message, Map<String, String> businessContextId,
 			SessionInfo extraInfo);
 

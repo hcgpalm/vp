@@ -42,7 +42,6 @@ import org.soitoolkit.commons.logentry.schema.v1.LogRuntimeInfoType.BusinessCont
  * @author Magnus Larsson
  *
  */
-@SuppressWarnings("deprecation")
 public class EventLoggerBase {
 
 	// EventLogger specific logger of message execution in VP

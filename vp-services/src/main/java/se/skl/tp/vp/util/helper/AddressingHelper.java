@@ -184,10 +184,8 @@ public class AddressingHelper {
 		}
 
 		if (noOfMatchingAdresses > 1) {
-			String errorMessage = VpSemanticErrorCodeEnum.VP006 + " More than one Logical Adress with matching Riv-version found for serviceNamespace:"
-					+ request.serviceContractNamespace + ", receiverId:" + request.receiverId;
-			log.error(errorMessage);
-			throw new VpSemanticException(errorMessage, VpSemanticErrorCodeEnum.VP006);
+			String errorMessage = request.getSummary();
+			raiseError(VpSemanticErrorCodeEnum.VP006, errorMessage);
 		}
 
 		if (adress == null || adress.trim().length() == 0) {

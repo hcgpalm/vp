@@ -52,7 +52,7 @@ public class VpFullServiceTest extends AbstractTestCase {
 
 	private static final int    CLIENT_TIMEOUT_MS = 600000000;
 	private static final String PRODUCT_ID = "SW123";
-	private static final String TJANSTE_ADRESS = "https://localhost:20000/vp/tjanst1";
+	private static final String TJANSTE_ADRESS = "https://localhost:20000/vp/ws/rivtabp20";
 	private static final String TJANSTE_ADRESS_SHORT_TIMEOUT  = "https://localhost:20000/vp/tjanst1-short-timeout";
 	private static final String LOGICAL_ADDRESS               = "vp-test-producer";
 	private static final String LOGICAL_ADDRESS_HTTP               = "vp-test-producer_http";
@@ -94,6 +94,7 @@ public class VpFullServiceTest extends AbstractTestCase {
 			"soitoolkit-mule-jms-connector-activemq-embedded.xml," + 
 			"vp-common.xml," +
 			"services/VagvalRouter-service.xml," +
+			"services/generic-vp-inbound-service-rivtabp20.xml," +
 			"vp-teststubs-and-services-config.xml";
 	}
 	
@@ -195,10 +196,11 @@ public class VpFullServiceTest extends AbstractTestCase {
 
 	private void assertInfoEventExtraInformation(TextMessage infoMessage, String expectedSenderIpAdress)
 			throws JMSException {
+		System.out.println(">>>>>" + infoMessage.getText());
 		assertTrue(infoMessage.getText().contains("<extraInfo><name>senderIpAdress</name><value>" + expectedSenderIpAdress + "</value></extraInfo>"));
     	assertTrue(infoMessage.getText().contains("<extraInfo><name>receiverid</name><value>vp-test-producer</value></extraInfo>"));
     	assertTrue(infoMessage.getText().contains("<extraInfo><name>senderid</name><value>tp</value>"));
-    	assertTrue(infoMessage.getText().contains("<extraInfo><name>wsdl_namespace</name><value>urn:riv:domain:subdomain:GetProductDetail:1:rivtabp20</value></extraInfo>"));
+    	assertTrue(infoMessage.getText().contains("<extraInfo><name>wsdl_namespace</name><value>urn:riv:generic:rivtabp20</value></extraInfo>"));
     	assertTrue(infoMessage.getText().contains("<extraInfo><name>servicecontract_namespace</name><value>urn:riv:domain:subdomain:GetProductDetailResponder:1</value></extraInfo>"));
     	assertTrue(infoMessage.getText().contains("<extraInfo><name>rivversion</name><value>RIVTABP20</value></extraInfo>"));
 	}
@@ -288,7 +290,7 @@ public class VpFullServiceTest extends AbstractTestCase {
     		
     	assertTrue(errorMessage.getText().contains("<extraInfo><name>receiverid</name><value>unknown-logical-address</value></extraInfo>"));
     	assertTrue(errorMessage.getText().contains("<extraInfo><name>senderid</name><value>tp</value>"));
-    	assertTrue(errorMessage.getText().contains("<extraInfo><name>wsdl_namespace</name><value>urn:riv:domain:subdomain:GetProductDetail:1:rivtabp20</value></extraInfo>"));
+    	assertTrue(errorMessage.getText().contains("<extraInfo><name>wsdl_namespace</name><value>urn:riv:generic:rivtabp20</value></extraInfo>"));
     	assertTrue(errorMessage.getText().contains("<extraInfo><name>servicecontract_namespace</name><value>urn:riv:domain:subdomain:GetProductDetailResponder:1</value></extraInfo>"));
     	assertTrue(errorMessage.getText().contains("<extraInfo><name>rivversion</name><value>RIVTABP20</value></extraInfo>"));
     	assertTrue(errorMessage.getText().contains("<extraInfo><name>errorCode</name><value>VP004</value></extraInfo>"));

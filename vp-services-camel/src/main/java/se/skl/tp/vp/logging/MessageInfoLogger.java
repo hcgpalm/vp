@@ -3,6 +3,8 @@ package se.skl.tp.vp.logging;
 import org.apache.camel.Exchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import se.skl.tp.vp.logging.logentry.LogEntry;
 
 
@@ -31,6 +33,8 @@ public class MessageInfoLogger {
   private static final String MSG_TYPE_LOG_RESP_OUT = "resp-out";
   private static final String MSG_TYPE_ERROR = "error";
 
+  @Autowired
+  private LogMessageFormatter logMessageFormatter;
 
   public void logReqIn(Exchange exchange) {
     log(LOGGER_REQ_IN, exchange, MSG_TYPE_LOG_REQ_IN);
@@ -54,7 +58,7 @@ public class MessageInfoLogger {
       LogEntry logEntry = LogEntryBuilder.createLogEntry(MSG_TYPE_ERROR, exchange);
       logEntry.getExtraInfo().put(LogExtraInfoBuilder.SOURCE, getClass().getName());
       logEntry.getMessageInfo().setException(LogEntryBuilder.createMessageException(exchange, stackTrace));
-      String logMsg = LogMessageFormatter.format(LOG_EVENT_ERROR, logEntry);
+      String logMsg = logMessageFormatter.format(LOG_EVENT_ERROR, logEntry);
       LOGGER_ERROR.error(logMsg);
 
     } catch (Exception e) {
@@ -68,11 +72,11 @@ public class MessageInfoLogger {
         LogEntry logEntry = LogEntryBuilder.createLogEntry(messageType, exchange);
         logEntry.getExtraInfo().put(LogExtraInfoBuilder.SOURCE, getClass().getName());
         logEntry.setPayload(exchange.getIn().getBody(String.class));
-        log.debug(LogMessageFormatter.format(LOG_EVENT_DEBUG, logEntry));
+        log.debug(logMessageFormatter.format(LOG_EVENT_DEBUG, logEntry));
       } else if (log.isInfoEnabled()) {
         LogEntry logEntry = LogEntryBuilder.createLogEntry(messageType, exchange);
         logEntry.getExtraInfo().put(LogExtraInfoBuilder.SOURCE, getClass().getName());
-        log.info(LogMessageFormatter.format(LOG_EVENT_INFO, logEntry));
+        log.info(logMessageFormatter.format(LOG_EVENT_INFO, logEntry));
       }
 
     } catch (Exception e) {

@@ -31,4 +31,5 @@ public class PropertyConstants {
 
     public static final String PRODUCER_CHUNKED_ENCODING = "producer.chunked.encoding";
 
+    public static final String LOGGING_MAX_PAYLOAD_SIZE = "logging.maxPayloadSize";
 }

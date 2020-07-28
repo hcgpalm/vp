@@ -4,12 +4,17 @@ import java.net.InetAddress;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import se.skl.tp.vp.constants.PropertyConstants;
 import se.skl.tp.vp.logging.logentry.LogEntry;
 import se.skl.tp.vp.logging.logentry.LogMessageExceptionType;
 import se.skl.tp.vp.logging.logentry.LogMessageType;
 import se.skl.tp.vp.logging.logentry.LogMetadataInfoType;
 import se.skl.tp.vp.logging.logentry.LogRuntimeInfoType;
 
+@Component
 @Log4j2
 public class LogMessageFormatter {
 
@@ -24,6 +29,9 @@ public class LogMessageFormatter {
   protected static String hostName = UNKNOWN;
   protected static String hostIp = UNKNOWN;
 
+  @Value("${" + PropertyConstants.LOGGING_MAX_PAYLOAD_SIZE + ":#{0}}")
+  private int maxPayloadSize;
+
   static {
     try {
       // Let's give it a try, fail silently...
@@ -35,11 +43,7 @@ public class LogMessageFormatter {
     }
   }
 
-  private LogMessageFormatter() {
-    // Static utility class
-  }
-
-  protected static String format(String logEventName, LogEntry logEntry) {
+  protected String format(String logEventName, LogEntry logEntry) {
     LogMessageType messageInfo  = logEntry.getMessageInfo();
     LogMetadataInfoType metadataInfo = logEntry.getMetadataInfo();
     LogRuntimeInfoType runtimeInfo  = logEntry.getRuntimeInfo();
@@ -53,6 +57,11 @@ public class LogMessageFormatter {
     String payload                 = logEntry.getPayload();
     String extraInfoString         = extraInfoToString(logEntry.getExtraInfo());
 
+    if (payload != null && maxPayloadSize > 0 && payload.length() > maxPayloadSize) {
+    	payload = payload.substring(0, maxPayloadSize);
+    	payload += "\nPayloadTruncated=true";
+    }
+
     StringBuilder stackTrace = new StringBuilder();
     LogMessageExceptionType lmeException = logEntry.getMessageInfo().getException();
     if (lmeException != null) {
@@ -64,7 +73,7 @@ public class LogMessageFormatter {
   }
 
 
-  private static String extraInfoToString(Map extraInfo) {
+  private static String extraInfoToString(Map<?, ?> extraInfo) {
 
     if (extraInfo == null) {
       return "";
